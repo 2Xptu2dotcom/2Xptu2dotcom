@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mein P2P Chat</title>
+    <title>P2P Chat</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #chat { border: 1px solid #ccc; height: 300px; overflow-y: scroll; margin: 10px 0; padding: 10px; }
+    </style>
 </head>
 <body>
-    <h3>Chat-App</h3>
+    <h2>Joker-Netzwerk Chat</h2>
     <div id="status">Verbinde...</div>
-    <div id="chat" style="height: 200px; border: 1px solid #ccc; overflow-y: scroll;"></div>
-    <br>
-    <input id="peerID" placeholder="ID vom Freund">
+    <input id="peerID" placeholder="ID des Freundes">
     <button onclick="verbinden()">Verbinden</button>
-    <br>
+    <div id="chat"></div>
     <input id="msg" placeholder="Nachricht...">
     <button onclick="senden()">Senden</button>
 
@@ -20,36 +22,34 @@
         let conn;
 
         peer.on('open', (id) => {
-            document.getElementById('status').innerText = "Deine ID: " + id;
-        });
-
-        peer.on('connection', (c) => {
-            conn = c;
-            setup();
+            document.getElementById('status').innerText = "Deine ID: " + id + " (Teile diese ID deinem Freund mit!)";
         });
 
         function verbinden() {
-            let id = document.getElementById('peerID').value;
+            const id = document.getElementById('peerID').value;
             conn = peer.connect(id);
-            conn.on('open', () => {
-                setup();
-                document.getElementById('status').innerText = "Verbunden mit " + id;
-            });
+            setupConnection();
         }
 
-        function setup() {
+        peer.on('connection', (c) => {
+            conn = c;
+            setupConnection();
+        });
+
+        function setupConnection() {
+            conn.on('open', () => document.getElementById('status').innerText = "Verbunden!");
             conn.on('data', (data) => {
-                let div = document.createElement('div');
-                div.textContent = "Freund: " + data;
+                const div = document.createElement('div');
+                div.innerText = "Freund: " + data;
                 document.getElementById('chat').appendChild(div);
             });
         }
 
         function senden() {
-            let txt = document.getElementById('msg').value;
-            conn.send(txt);
-            let div = document.createElement('div');
-            div.textContent = "Ich: " + txt;
+            const msg = document.getElementById('msg').value;
+            conn.send(msg);
+            const div = document.createElement('div');
+            div.innerText = "Ich: " + msg;
             document.getElementById('chat').appendChild(div);
         }
     </script>
