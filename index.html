@@ -1,57 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Joker-Chat</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Joker Chat</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: #00ff00; padding: 20px; }
-        #chat { border: 2px solid #555; height: 300px; overflow-y: scroll; margin: 10px 0; padding: 10px; background: #000; }
-        input, button { padding: 10px; margin: 5px; }
+        body { background: #000; color: #39ff14; font-family: monospace; padding: 20px; }
+        #chatBox { width: 100%; height: 300px; background: #111; border: 1px solid #39ff14; overflow-y: scroll; margin-bottom: 10px; padding: 10px; }
     </style>
 </head>
 <body>
-    <h1>Chat</h1>
-    <div id="status">Verbinde...</div>
-    <input id="peerID" placeholder="ID vom Freund">
-    <button onclick="verbinden()">Verbinden</button>
-    <div id="chat"></div>
-    <input id="msg" placeholder="Nachricht...">
+    <h2>Joker Chat Raum</h2>
+    <div id="chatBox"></div>
+    <input id="eingabe" placeholder="Nachricht eingeben..." style="width: 70%;">
     <button onclick="senden()">Senden</button>
 
     <script>
-        const peer = new Peer();
-        let conn;
-
-        peer.on('open', (id) => {
-            document.getElementById('status').innerText = "Deine ID: " + id;
-        });
-
-        function verbinden() {
-            const id = document.getElementById('peerID').value;
-            conn = peer.connect(id);
-            setup();
-        }
-
-        peer.on('connection', (c) => {
-            conn = c;
-            setup();
-        });
-
-        function setup() {
-            conn.on('open', () => document.getElementById('status').innerText = "Verbunden!");
-            conn.on('data', (data) => {
-                const div = document.createElement('div');
-                div.innerText = "Freund: " + data;
-                document.getElementById('chat').appendChild(div);
-            });
-        }
-
         function senden() {
-            const msg = document.getElementById('msg').value;
-            conn.send(msg);
-            const div = document.createElement('div');
-            div.innerText = "Ich: " + msg;
-            document.getElementById('chat').appendChild(div);
+            var input = document.getElementById("eingabe");
+            var text = input.value;
+            if (text.trim() !== "") {
+                var chat = document.getElementById("chatBox");
+                chat.innerHTML += "<div>Joker: " + text + "</div>";
+                input.value = "";
+                chat.scrollTop = chat.scrollHeight;
+            }
         }
     </script>
 </body>
