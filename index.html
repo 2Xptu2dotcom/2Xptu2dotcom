@@ -1,40 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Joker Chat Raum</title>
+    <title>Joker-Chat</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: #00ff00; padding: 20px; }
+        #chat { border: 2px solid #555; height: 300px; overflow-y: scroll; margin: 10px 0; padding: 10px; background: #000; }
+        input, button { padding: 10px; margin: 5px; }
+    </style>
 </head>
 <body>
-    <h2>Joker-Chat: <span id="roomName"></span></h2>
+    <h1>Chat</h1>
     <div id="status">Verbinde...</div>
-    <div id="chat" style="height: 200px; border: 1px solid black; overflow-y: scroll;"></div>
+    <input id="peerID" placeholder="ID vom Freund">
+    <button onclick="verbinden()">Verbinden</button>
+    <div id="chat"></div>
     <input id="msg" placeholder="Nachricht...">
     <button onclick="senden()">Senden</button>
 
     <script>
-        // Raum-Name aus der URL holen (z.B. ?room=Geheim)
-        const params = new URLSearchParams(window.location.search);
-        const room = params.get('room') || 'Hauptraum';
-        document.getElementById('roomName').innerText = room;
-
-        // PeerJS verbindet alle im gleichen "Raum" über den Namen
-        const peer = new Peer(room + '-' + Math.floor(Math.random() * 10000));
+        const peer = new Peer();
         let conn;
 
-        peer.on('open', () => document.getElementById('status').innerText = "Bereit im Raum: " + room);
+        peer.on('open', (id) => {
+            document.getElementById('status').innerText = "Deine ID: " + id;
+        });
+
+        function verbinden() {
+            const id = document.getElementById('peerID').value;
+            conn = peer.connect(id);
+            setup();
+        }
 
         peer.on('connection', (c) => {
             conn = c;
             setup();
         });
 
-        // Automatische Suche nach anderen im Raum (hier vereinfacht)
-        function verbinden(friendId) {
-            conn = peer.connect(friendId);
-            setup();
-        }
-
         function setup() {
+            conn.on('open', () => document.getElementById('status').innerText = "Verbunden!");
             conn.on('data', (data) => {
                 const div = document.createElement('div');
                 div.innerText = "Freund: " + data;
