@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mein P2P Chat</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+    <h3>Chat-App</h3>
+    <div id="status">Verbinde...</div>
+    <div id="chat" style="height: 200px; border: 1px solid #ccc; overflow-y: scroll;"></div>
+    <br>
+    <input id="peerID" placeholder="ID vom Freund">
+    <button onclick="verbinden()">Verbinden</button>
+    <br>
+    <input id="msg" placeholder="Nachricht...">
+    <button onclick="senden()">Senden</button>
+
+    <script>
+        const peer = new Peer();
+        let conn;
+
+        peer.on('open', (id) => {
+            document.getElementById('status').innerText = "Deine ID: " + id;
+        });
+
+        peer.on('connection', (c) => {
+            conn = c;
+            setup();
+        });
+
+        function verbinden() {
+            let id = document.getElementById('peerID').value;
+            conn = peer.connect(id);
+            conn.on('open', () => {
+                setup();
+                document.getElementById('status').innerText = "Verbunden mit " + id;
+            });
+        }
+
+        function setup() {
+            conn.on('data', (data) => {
+                let div = document.createElement('div');
+                div.textContent = "Freund: " + data;
+                document.getElementById('chat').appendChild(div);
+            });
+        }
+
+        function senden() {
+            let txt = document.getElementById('msg').value;
+            conn.send(txt);
+            let div = document.createElement('div');
+            div.textContent = "Ich: " + txt;
+            document.getElementById('chat').appendChild(div);
+        }
+    </script>
+</body>
+</html>
