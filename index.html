@@ -1,52 +1,37 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>P2P Joker Chat</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        body { background: #000; color: #39ff14; font-family: monospace; padding: 20px; }
-        #chatBox { height: 200px; border: 1px solid #39ff14; overflow-y: scroll; margin-bottom: 10px; padding: 10px; }
-    </style>
-</head>
-<body>
-    <h2>P2P Joker Raum</h2>
-    <p>Deine ID: <span id="myID">...</span></p>
-    <input id="peerID" placeholder="ID des Freundes eingeben">
-    <button onclick="verbinden()">Verbinden</button>
-    
-    <div id="chatBox"></div>
+<body style="background:black; color:#39ff14; font-family:monospace;">
+    <h3>Joker-Raum (P2P - Kein Speicher)</h3>
+    <p>Deine ID: <b id="myID">Lade...</b></p>
+    <input id="peerID" placeholder="ID vom Freund">
+    <button onclick="connect()">Verbinden</button>
+    <div id="log" style="height:200px; border:1px solid #39ff14; overflow-y:scroll; margin:10px 0;"></div>
     <input id="msg" placeholder="Nachricht...">
-    <button onclick="senden()">Senden</button>
+    <button onclick="send()">Senden</button>
 
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         const peer = new Peer();
         let conn;
-
-        peer.on('open', (id) => document.getElementById('myID').innerText = id);
-
-        // Wenn jemand versucht, sich mit dir zu verbinden
-        peer.on('connection', (c) => {
+        peer.on('open', id => document.getElementById('myID').innerText = id);
+        
+        peer.on('connection', c => {
             conn = c;
-            conn.on('data', (data) => addChat('Freund: ' + data));
+            conn.on('data', data => log('Freund: ' + data));
         });
 
-        function verbinden() {
-            const targetID = document.getElementById('peerID').value;
-            conn = peer.connect(targetID);
-            conn.on('data', (data) => addChat('Freund: ' + data));
+        function connect() {
+            conn = peer.connect(document.getElementById('peerID').value);
+            conn.on('data', data => log('Freund: ' + data));
         }
 
-        function senden() {
-            const text = document.getElementById('msg').value;
-            if (conn) {
-                conn.send(text);
-                addChat('Du: ' + text);
-            }
+        function send() {
+            let val = document.getElementById('msg').value;
+            conn.send(val);
+            log('Du: ' + val);
         }
 
-        function addChat(msg) {
-            document.getElementById('chatBox').innerHTML += '<div>' + msg + '</div>';
-        }
+        function log(m) { document.getElementById('log').innerHTML += '<div>'+m+'</div>'; }
     </script>
 </body>
 </html>
