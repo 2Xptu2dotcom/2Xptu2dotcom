@@ -1,34 +1,63 @@
 <!DOCTYPE html>
 <html>
 <body style="background:black; color:#39ff14; font-family:monospace;">
-    <h3>Joker-Raum (P2P - Kein Speicher)</h3>
+    <h3>Joker-Raum (Warteraum aktiviert)</h3>
     <p>Deine ID: <b id="myID">Lade...</b></p>
-    <input id="peerID" placeholder="ID vom Freund">
-    <button onclick="connect()">Verbinden</button>
-    <div id="log" style="height:200px; border:1px solid #39ff14; overflow-y:scroll; margin:10px 0;"></div>
+    <input id="peerID" placeholder="ID vom Chef">
+    <button onclick="verbinden()">Verbinden</button>
+    
+    <div id="controls" style="display:none;">
+        <button onclick="startSignal()">RAUM AKTIVIEREN</button>
+    </div>
+
+    <div id="log" style="height:200px; border:1px solid #39ff14; overflow-y:scroll; margin:10px 0;">
+        Warte auf Start durch den Chef...
+    </div>
+    
     <input id="msg" placeholder="Nachricht...">
-    <button onclick="send()">Senden</button>
+    <button onclick="senden()">Senden</button>
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         const peer = new Peer();
         let conn;
-        peer.on('open', id => document.getElementById('myID').innerText = id);
-        
-        peer.on('connection', c => {
-            conn = c;
-            conn.on('data', data => log('Freund: ' + data));
+        let chatAktiv = false;
+
+        peer.on('open', id => {
+            document.getElementById('myID').innerText = id;
+            // Wenn du der Chef bist, darfst du den Start-Button sehen
+            if(id.includes('Chef')) document.getElementById('controls').style.display = 'block';
         });
 
-        function connect() {
+        peer.on('connection', c => {
+            conn = c;
+            conn.on('data', data => {
+                if(data === "START") {
+                    chatAktiv = true;
+                    document.getElementById('log').innerHTML = '--- RAUM IST OFFEN! ---';
+                } else if (chatAktiv) {
+                    log('Freund: ' + data);
+                }
+            });
+        });
+
+        function verbinden() {
             conn = peer.connect(document.getElementById('peerID').value);
-            conn.on('data', data => log('Freund: ' + data));
         }
 
-        function send() {
-            let val = document.getElementById('msg').value;
-            conn.send(val);
-            log('Du: ' + val);
+        function startSignal() {
+            chatAktiv = true;
+            conn.send("START");
+            log('--- DU HAST DEN RAUM GEÖFFNET ---');
+        }
+
+        function senden() {
+            if(chatAktiv) {
+                conn.send(document.getElementById('msg').value);
+                log('Du: ' + document.getElementById('msg').value);
+            } else {
+                alert("Der Raum ist noch gesperrt!");
+            }
         }
 
         function log(m) { document.getElementById('log').innerHTML += '<div>'+m+'</div>'; }
