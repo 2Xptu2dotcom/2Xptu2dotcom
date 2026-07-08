@@ -1,69 +1,30 @@
 <!DOCTYPE html>
 <html>
 <body style="background:black; color:#39ff14; font-family:monospace;">
-    <h3>Joker-Raum</h3>
-    <p>Deine ID: <b id="myID">Lade...</b></p>
-    <input id="peerID" placeholder="ID vom Freund">
-    <button onclick="verbinden()">Verbinden</button>
-    
-    <!-- Dieser Button ist jetzt immer da -->
-    <div id="controls">
-        <button onclick="startSignal()">RAUM AKTIVIEREN</button>
-    </div>
+    <h3>Joker-Logbuch (Lore-Raum)</h3>
+    <div id="chat" style="height:300px; border:1px solid #39ff14; overflow-y:scroll;"></div>
+    <input id="text" placeholder="Lore-Idee schreiben...">
+    <button onclick="send()">Senden</button>
 
-    <div id="log" style="height:200px; border:1px solid #39ff14; overflow-y:scroll; margin:10px 0;">
-        Warte auf Aktivierung...
-    </div>
-    
-    <input id="msg" placeholder="Nachricht...">
-    <button onclick="senden()">Senden</button>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script>
-        const peer = new Peer();
-        let conn;
-        let chatAktiv = false;
+        // Hier wird dein Raum gespeichert
+        const firebaseConfig = { databaseURL: "https://joker-nft-chat-default-rtdb.firebaseio.com" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const refChat = ref(db, 'lore-raum');
 
-        peer.on('open', id => document.getElementById('myID').innerText = id);
+        function send() {
+            push(refChat, document.getElementById('text').value);
+            document.getElementById('text').value = '';
+        }
 
-        peer.on('connection', c => {
-            conn = c;
-            conn.on('data', data => {
-                if(data === "START") {
-                    chatAktiv = true;
-                    document.getElementById('log').innerHTML = '--- RAUM IST OFFEN! ---';
-                } else if (chatAktiv) {
-                    log('Freund: ' + data);
-                }
-            });
+        onChildAdded(refChat, (data) => {
+            document.getElementById('chat').innerHTML += '<div>' + data.val() + '</div>';
         });
-
-        function verbinden() {
-            conn = peer.connect(document.getElementById('peerID').value);
-            conn.on('data', data => {
-                if(data === "START") {
-                    chatAktiv = true;
-                    document.getElementById('log').innerHTML = '--- RAUM IST OFFEN! ---';
-                }
-            });
-        }
-
-        function startSignal() {
-            chatAktiv = true;
-            if(conn) conn.send("START");
-            log('--- RAUM GEÖFFNET ---');
-        }
-
-        function senden() {
-            if(chatAktiv) {
-                conn.send(document.getElementById('msg').value);
-                log('Du: ' + document.getElementById('msg').value);
-            } else {
-                alert("Erst Raum aktivieren!");
-            }
-        }
-
-        function log(m) { document.getElementById('log').innerHTML += '<div>'+m+'</div>'; }
+        window.send = send;
     </script>
 </body>
 </html>
