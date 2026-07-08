@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html>
 <body style="background:black; color:#39ff14; font-family:monospace;">
-    <h3>Joker-Raum (Warteraum aktiviert)</h3>
+    <h3>Joker-Raum</h3>
     <p>Deine ID: <b id="myID">Lade...</b></p>
-    <input id="peerID" placeholder="ID vom Chef">
+    <input id="peerID" placeholder="ID vom Freund">
     <button onclick="verbinden()">Verbinden</button>
     
-    <div id="controls" style="display:none;">
+    <!-- Dieser Button ist jetzt immer da -->
+    <div id="controls">
         <button onclick="startSignal()">RAUM AKTIVIEREN</button>
     </div>
 
     <div id="log" style="height:200px; border:1px solid #39ff14; overflow-y:scroll; margin:10px 0;">
-        Warte auf Start durch den Chef...
+        Warte auf Aktivierung...
     </div>
     
     <input id="msg" placeholder="Nachricht...">
@@ -23,11 +24,7 @@
         let conn;
         let chatAktiv = false;
 
-        peer.on('open', id => {
-            document.getElementById('myID').innerText = id;
-            // Wenn du der Chef bist, darfst du den Start-Button sehen
-            if(id.includes('Chef')) document.getElementById('controls').style.display = 'block';
-        });
+        peer.on('open', id => document.getElementById('myID').innerText = id);
 
         peer.on('connection', c => {
             conn = c;
@@ -43,12 +40,18 @@
 
         function verbinden() {
             conn = peer.connect(document.getElementById('peerID').value);
+            conn.on('data', data => {
+                if(data === "START") {
+                    chatAktiv = true;
+                    document.getElementById('log').innerHTML = '--- RAUM IST OFFEN! ---';
+                }
+            });
         }
 
         function startSignal() {
             chatAktiv = true;
-            conn.send("START");
-            log('--- DU HAST DEN RAUM GEÖFFNET ---');
+            if(conn) conn.send("START");
+            log('--- RAUM GEÖFFNET ---');
         }
 
         function senden() {
@@ -56,7 +59,7 @@
                 conn.send(document.getElementById('msg').value);
                 log('Du: ' + document.getElementById('msg').value);
             } else {
-                alert("Der Raum ist noch gesperrt!");
+                alert("Erst Raum aktivieren!");
             }
         }
 
